@@ -1,0 +1,5 @@
+# in this case the linked attribute neo4j is not defined
+Language cypher {"created":1999, "by":"someone"}
+	created_by > neo4j
+
+Vendor neo4j
