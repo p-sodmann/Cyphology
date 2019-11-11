@@ -16,6 +16,9 @@ Language cyphol {"created_in":2019, "written_by": "Philipp Sodmann"}
 	
 Label unique_id {"properties":"as json"}
 	relationship_type {"can have properties too": "not yet implemented"} > unique_id
+	
+# can import data:
+import tests/sample_data/sample.cyphol
 ```
 
 Cyphologie is also capable to validate the Data before inserting it into Neo4J.  
