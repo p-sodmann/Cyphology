@@ -15,7 +15,7 @@ Language cyphol {"created_in":2019, "written_by": "Philipp Sodmann"}
 	inspired_by {"thank":"you"} > cypher
 	
 Label unique_id {"properties":"as json"}
-	relationship_type > unique_id
+	relationship_type {"can have properties too": "not yet implemented"} > unique_id
 ```
 
 Cyphologie is also capable to validate the Data before inserting it into Neo4J.  
