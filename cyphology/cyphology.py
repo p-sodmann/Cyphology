@@ -54,6 +54,7 @@ class Cyphology:
                             # dont allow multiple instances of an Object
                             # unsure if there isnt a usecase for this
                             if cyph_object.uid in self.known_objects:
+                                print(cyph_object)
                                 raise Exception(f"Error 03: Object is already known, please merge occurences of {cyph_object.uid}")
 
                             
@@ -67,3 +68,7 @@ class Cyphology:
         with driver.session() as session:
             for cyph_object in self.cyph_objects:
                 session.write_transaction(cyph_object.create_cypher)
+                try:
+                    session.write_transaction(cyph_object.create_cypher)
+                except:
+                    return cyph_object

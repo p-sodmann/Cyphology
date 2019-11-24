@@ -1,5 +1,4 @@
-
-# aadd a single node
+# add a single node
 Vendor neo4j
 
 Language cypher {"created":1999, "by":"someone"}

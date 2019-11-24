@@ -1,20 +1,33 @@
+import re
+import json
+
+regex_attribute_matcher = re.compile(r"(\S*) ({.*?} )?([<->]) (\S*)")
+
 class CyphAttribute:
     def __init__(self, string_representation):
         string_representation = string_representation.strip()
-        parts = string_representation.split()
+        matches = re.match(regex_attribute_matcher, string_representation)
 
         self.type = None
         self.direction = None
         self.uid = None
+        self.properties = {}
         
-        # representations need at least 3 groups: Type direction UID
-        if len(parts) < 3:
-            raise Exception(f"Error 03: in line: '{string_representation}' seems to be an error")
-        
-        if len(parts) == 3:
+        if matches:
+            parts = matches.groups()
+
+            # representations need at least 3 groups: Type direction UID
+            if len(parts) < 3:
+                raise Exception(f"Attibute Error 00: in line: '{string_representation}' seems to be an error")
+            
             self.type = parts[0]
-            self.direction = parts[1]
-            self.uid = parts[2]
+            if parts[1] is not None:
+                self.properties = json.loads(parts[1])
+            self.direction = parts[2]
+            self.uid = parts[3]
+
+        else:
+            raise Exception(f"Attibute Error 01: could not parse '{string_representation}'")
 
     def __str__(self):
-        return f"{self.type} {self.direction} {self.uid}"
+        return f"{self.type} {self.direction} {self.uid} {self.properties}"
