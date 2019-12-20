@@ -16,7 +16,7 @@ class CyphObject:
         
         if matches:
             parts = matches.groups()
-            print(parts)
+            
             # we need at least a type and a uid
             if parts[0] is None or parts[1] is None:
                 raise Exception(f"Object Error 01: in line: '{string_representation}' seems to be an error, at least Class and UID are required")
@@ -29,7 +29,8 @@ class CyphObject:
                 try:
                     self.properties = json.loads(parts[2])
                 except:
-                    print(string_representation)
+                    pass
+                    #print(string_representation)
 
             self.properties["uid"] = self.uid
 

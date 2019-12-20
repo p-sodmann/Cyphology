@@ -32,7 +32,7 @@ class Cyphology:
                         continue
                     
                     else:
-                        if line.startswith("\t"):
+                        if line.startswith("\t") or line.startswith(" "):
                             # lines beginning with a tab are attributes to the previous object
 
                             # we can only append an attribute if we have an object
@@ -62,8 +62,8 @@ class Cyphology:
                             self.cyph_objects.append(cyph_object)
 
 
-    def write_to_neo4j(self):
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "meow"))
+    def write_to_neo4j(self, username="neo4j", password="meow"):
+        driver = GraphDatabase.driver("bolt://localhost:7687", auth=(username, password))
 
         with driver.session() as session:
             for cyph_object in self.cyph_objects:
