@@ -23,3 +23,11 @@ import tests/sample_data/sample.cyphol
 
 Cyphologie is also capable to validate the Data before inserting it into Neo4J.  
 It is in early development for my private project.
+
+Usage:
+
+```
+import cyphology
+ontology = cyphology.Cyphology("path/to/ontology.cyphol")
+ontology.write_to_neo4j(username="neo4j", password="superSecret😼")
+```
