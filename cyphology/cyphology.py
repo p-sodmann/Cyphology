@@ -19,12 +19,13 @@ class Cyphology:
                 # ignore empty lines, one character is the line break
                 if len(line) > 1:
                     
-                    # ignore comments
                     if line.startswith("#"):
-                        pass
+                        # this is a coment, dont do anything here
+                        continue
 
-                    # enable imports
+                    
                     elif line.startswith("import"):
+                        # enable imports
                         file_to_import = line.split()[1]
                         head, tail = os.path.split(path)
 
@@ -32,9 +33,8 @@ class Cyphology:
                         continue
                     
                     else:
-                        if line.startswith("\t") or line.startswith(" "):
+                        if line.startswith(("\t", " ")):
                             # lines beginning with a tab are attributes to the previous object
-
                             # we can only append an attribute if we have an object
                             if not len(self.cyph_objects):
                                 raise Exception(f"Error 02: The syntax of your file {path} seems to be faulty, no Object was found for line {line}, do you have a rouge tabulator?")
