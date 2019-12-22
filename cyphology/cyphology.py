@@ -27,7 +27,7 @@ class Cyphology:
                     elif line.startswith("import"):
                         # enable imports
                         file_to_import = line.split()[1]
-                        head, tail = os.path.split(path)
+                        head, _ = os.path.split(path)
 
                         self.parse(head + os.path.sep + file_to_import)
                         continue
@@ -36,7 +36,7 @@ class Cyphology:
                         if line.startswith(("\t", " ")):
                             # lines beginning with a tab are attributes to the previous object
                             # we can only append an attribute if we have an object
-                            if not len(self.cyph_objects):
+                            if not self.cyph_objects:
                                 raise Exception(f"Error 02: The syntax of your file {path} seems to be faulty, no Object was found for line {line}, do you have a rouge tabulator?")
                             
                             cyph_attribute = CyphAttribute(line)

@@ -1,5 +1,4 @@
 import json
-from .cyph_attribute import CyphAttribute
 import re
 
 regex_object_matcher = re.compile(r"(\S*) (\S*)( {.*})?")
@@ -50,7 +49,7 @@ class CyphObject:
 
     @staticmethod
     def create_property_string(properties):
-        if len(properties):
+        if not properties:
             property_string = "{"
             first = True
 
