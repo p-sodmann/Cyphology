@@ -28,8 +28,8 @@ class CyphObject:
                 try:
                     self.properties = json.loads(parts[2])
                 except:
-                    pass
-                    #print(string_representation)
+                    print("error!")
+                    print(string_representation)
 
             self.properties["uid"] = self.uid
 
@@ -46,38 +46,4 @@ class CyphObject:
 
     def add_attribute(self, attribute):
         self.attributes.append(attribute)
-
-    @staticmethod
-    def create_property_string(properties):
-        if not properties:
-            property_string = "{"
-            first = True
-
-            for field, value in properties.items():
-                if not first:
-                    property_string += ", "
-                else:
-                    first = False
-
-                property_string += f"{field}: '{value}'"
-
-            property_string += "}"
-        else:
-            property_string = ""
-        
-        return property_string
-
-    def create_cypher(self, tx):
-        # this will produce a node with arbitrary properties
-        
-        property_string = self.create_property_string(self.properties)
-        query_string = f"MERGE (:{self.type} {property_string})"
-
-        tx.run(query_string, self.properties)
-
-        # add relationships to other nodes
-
-        for attribute in self.attributes:
-            attribute_property_string = self.create_property_string(attribute.properties)
-            query_string = f"MATCH (source {{uid:$uid_source}}) OPTIONAL MATCH (destination {{uid:$uid_destination}}) MERGE (source)-[:{attribute.type} {attribute_property_string}]->(destination)"
-            tx.run(query_string, uid_source=self.uid, uid_destination=attribute.uid)
+    

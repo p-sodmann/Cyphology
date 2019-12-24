@@ -27,5 +27,6 @@ class TestCypolLoading(unittest.TestCase):
             Cyphology("tests/sample_data/attribute_target_unknown.cyphol")
         self.assertTrue("Error 04" in str(context.exception))
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,7 @@
+Order Carnivora
+
+Suborder Feliforma
+    parent_of < Carnivora
+
+Family Felidae
+    parent_of < Feliforma

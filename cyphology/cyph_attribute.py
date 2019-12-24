@@ -23,8 +23,11 @@ class CyphAttribute:
             self.type = parts[0]
             if parts[1] is not None:
                 self.properties = json.loads(parts[1])
+                
             self.direction = parts[2]
             self.uid = parts[3]
+
+            self.properties["uid"] = self.uid
 
         else:
             raise Exception(f"Attibute Error 01: could not parse '{string_representation}'")
