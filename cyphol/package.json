@@ -1,0 +1,25 @@
+{
+    "name": "cyphol",
+    "displayName": "cyphol",
+    "description": "Syntax highlighting for Cyphology",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.41.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "cyphol",
+            "aliases": ["Cyphology", "cyphol"],
+            "extensions": [".cyphol",".cyl"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "cyphol",
+            "scopeName": "source.cyphol",
+            "path": "./syntaxes/cyphol.tmLanguage.json"
+        }]
+    }
+}

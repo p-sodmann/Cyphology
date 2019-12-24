@@ -1,0 +1,70 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Cyphology",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#class"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#attribute"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.cyphol",
+				"match": "\\b(import|default)\\b"
+			}]
+		},
+
+		"strings": {
+			"name": "string.quoted.double.cyphol",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.cyphol",
+					"match": "\\\\."
+				}
+			]
+		},
+
+		"comment": {
+			"name": "comment.cyphol",
+			"begin": "#",
+			"end": "\n"
+		},
+
+		"class": {
+			"patterns": [{
+					"match": "(\\w*) (\\w*) {.*}",
+					"captures": {
+						"1": {"name": "entity.name.type.cyphol"},
+						"2": {"name": "markup.bold.cyphol"}
+					}
+				}]
+		},
+		
+		"attribute": {
+			"patterns": [{
+					"match": "\\s*(\\w*) ({.*} )?([<->]) (\\w*)",
+					"captures": {
+						"1": {"name": "entity.name.type.cyphol"},
+						
+						"4": {"name": "markup.bold.cyphol"}
+					}
+				}]
+		}
+
+	},
+	"scopeName": "source.cyphol"
+}
