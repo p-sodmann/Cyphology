@@ -22,7 +22,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.cyphol",
-				"match": "\\b(import|default)\\b"
+				"match": "\\b(import|index|default)\\b"
 			}]
 		},
 

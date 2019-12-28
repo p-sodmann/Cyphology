@@ -22,7 +22,10 @@ class CyphAttribute:
             
             self.type = parts[0]
             if parts[1] is not None:
-                self.properties = json.loads(parts[1])
+                try:
+                    self.properties = json.loads(parts[1])
+                except:
+                    raise Exception(f"Attribute Error 02: failed parsing json in line: {string_representation} Json: {parts[1]}")
                 
             self.direction = parts[2]
             self.uid = parts[3]

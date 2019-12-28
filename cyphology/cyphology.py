@@ -26,12 +26,14 @@ class Cyphology:
         return len(self.cyph_objects)
 
     def parse(self, path):
+        path = os.path.normpath(path)
+
         with open(path, encoding="utf-8") as file:
             for line in file.readlines():
                 # ignore empty lines, one character is the line break
-                if len(line) > 1:
+                if len(line.strip()) > 1:
                     
-                    if line.startswith("#"):
+                    if line.strip().startswith("#"):
                         # this is a coment, dont do anything here
                         continue
 
@@ -42,6 +44,9 @@ class Cyphology:
                         head, _ = os.path.split(path)
 
                         self.parse(head + os.path.sep + file_to_import)
+
+                    elif line.startswith("index"):
+                        self.add_index(line)
 
                     elif line.startswith("default "):
                         # set a default value to an edge or a node
@@ -69,12 +74,14 @@ class Cyphology:
         if cyph_attribute.type in self.defaults:
             cyph_attribute.properties = {**self.defaults[cyph_attribute.type], **cyph_attribute.properties}
 
-        # Raise exception, if the target object was not defined
+        # Raise exception, if the target object was not definedyo c
         if cyph_attribute.uid not in self.known_objects:
             raise Exception(f"Error 04: target object {cyph_attribute.uid} is not known yet")
 
         self.cyph_objects[-1].add_attribute(cyph_attribute)
 
+    def add_index(self, line):
+        pass
 
     def add_object(self, line):
         cyph_object = CyphObject(line)
