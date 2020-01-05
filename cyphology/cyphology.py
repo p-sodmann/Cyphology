@@ -3,7 +3,7 @@ from .cyph_object import CyphObject
 from .cyph_attribute import CyphAttribute
 from neo4j import GraphDatabase
 import json
-
+from tqdm import tqdm
 
 class Cyphology:
     def __init__(self, path):
@@ -156,7 +156,7 @@ class Cyphology:
         driver = GraphDatabase.driver("bolt://localhost:7687", auth=(username, password))
 
         with driver.session() as session:
-            for cyph_object in self.cyph_objects:
+            for cyph_object in tqdm(self.cyph_objects):
                 self.create_cypher(session, cyph_object)
                 
 
