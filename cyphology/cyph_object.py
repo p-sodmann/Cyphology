@@ -29,7 +29,7 @@ class CyphObject:
                 try:
                     self.properties = json.loads(parts[2])
                 except:
-                    print("error!")
+                    print(f"Error parsing json in file: {origin}")
                     print(string_representation)
 
             self.properties["uid"] = self.uid

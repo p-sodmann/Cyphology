@@ -4,6 +4,7 @@ from .cyph_attribute import CyphAttribute
 from neo4j import GraphDatabase
 import json
 from tqdm import tqdm
+import warnings
 
 class Cyphology:
     def __init__(self, path):
@@ -81,7 +82,7 @@ class Cyphology:
 
         # Raise exception, if the target object was not definedyo c
         if cyph_attribute.uid not in self.known_objects:
-            raise Exception(f"Error 04: target object {cyph_attribute.uid} is not known yet")
+            raise Exception(f"Error 05: target object {cyph_attribute.uid} in file: {self.current_file} is not known yet")
 
         self.cyph_objects[-1].add_attribute(cyph_attribute)
 
@@ -103,11 +104,11 @@ class Cyphology:
                     original = existing_cyph_object
                     break
 
-            raise Exception(f"Error 03: Object is already known, please merge occurences of {cyph_object.uid} first occurence: {original.origin} second occurence: {self.current_file}")
+            warnings.warn(f"Warning 01: Object is already known, please merge occurences of {cyph_object.uid} first occurence: {original.origin} second occurence: {self.current_file}")
 
-
-        self.known_objects.add(cyph_object.uid)
-        self.cyph_objects.append(cyph_object)
+        else:
+            self.known_objects.add(cyph_object.uid)
+            self.cyph_objects.append(cyph_object)
 
 
     def add_default(self, line):
