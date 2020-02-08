@@ -9,6 +9,7 @@ class Cyphology:
     def __init__(self, path):
         self.cyph_objects = []
         self.known_objects = set()
+        self.current_file = path
         
         # defaults belong to a type of Node 
         self.defaults = {}
@@ -27,6 +28,7 @@ class Cyphology:
 
     def parse(self, path):
         path = os.path.normpath(path)
+        self.current_file = path
 
         with open(path, encoding="utf-8") as file:
             for line in file.readlines():
@@ -44,6 +46,9 @@ class Cyphology:
                         head, _ = os.path.split(path)
 
                         self.parse(head + os.path.sep + file_to_import)
+                        
+                        # reset current file
+                        self.current_file = path
 
                     elif line.startswith("index"):
                         self.add_index(line)
@@ -84,7 +89,7 @@ class Cyphology:
         pass
 
     def add_object(self, line):
-        cyph_object = CyphObject(line)
+        cyph_object = CyphObject(line, origin=self.current_file)
         
         # add defaults and overwrite them if a value is set.
         if cyph_object.type in self.defaults:
@@ -93,7 +98,12 @@ class Cyphology:
         # dont allow multiple instances of an Object
         # unsure if there isnt a usecase for this
         if cyph_object.uid in self.known_objects:
-            raise Exception(f"Error 03: Object is already known, please merge occurences of {cyph_object.uid}")
+            for existing_cyph_object in self.cyph_objects:
+                if existing_cyph_object.uid == cyph_object.uid:
+                    original = existing_cyph_object
+                    break
+
+            raise Exception(f"Error 03: Object is already known, please merge occurences of {cyph_object.uid} first occurence: {original.origin} second occurence: {self.current_file}")
 
 
         self.known_objects.add(cyph_object.uid)
@@ -132,23 +142,33 @@ class Cyphology:
         match_string_destination = ", ".join([f"{selector}:${selector}_destination" for selector in self.match_on])
 
         for attribute in cypher_object.attributes:
+
+
+            uid_source = cypher_object.uid
+            uid_destination = attribute.uid
+            attribute_uid = {"uid": uid_source + attribute.direction + uid_destination}
+
             # merge global properties and the attribute propperties
             attribute_properties = {**self.global_properties, **attribute.properties}
-            attribute_property_string = self.create_property_string(attribute_properties)
-            
+
             # generate the criteria for the child            
-            match_criteria_destination = {selector+"_destination":attribute_properties[selector] for selector in self.match_on}
+            match_criteria_destination = {selector+"_destination": attribute_properties[selector] for selector in self.match_on}
             match_criteria = {**match_criteria_source, **match_criteria_destination}
+
+            # TODO Fix the double declaration "üü+´p" - Nala (my cat)
+            attribute_properties = {**attribute.properties, **attribute_uid}
+            attribute_property_string = self.create_property_string(attribute_properties)
 
             if attribute.direction == ">":
                 query_string = f"MATCH (source {{{match_string_source}}}) OPTIONAL MATCH (destination {{{match_string_destination}}}) MERGE (source)-[:{attribute.type} {attribute_property_string}]->(destination)"
 
             elif attribute.direction == "<":
                 query_string = f"MATCH (source {{{match_string_source}}}) OPTIONAL MATCH (destination {{{match_string_destination}}}) MERGE (source)<-[:{attribute.type} {attribute_property_string}]-(destination)"
-
+            
             else:
                 raise Exception(f"Object Error 02: in line: '{attribute_property_string}' seems to be an error, direction not supported")
-            
+            print(query_string)
+            print(match_string_destination)
             tx.run(query_string, match_criteria)
 
 

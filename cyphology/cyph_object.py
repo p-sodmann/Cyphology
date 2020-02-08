@@ -4,11 +4,12 @@ import re
 regex_object_matcher = re.compile(r"(\S*) (\S*)( {.*})?")
 
 class CyphObject:
-    def __init__(self, string_representation):
+    def __init__(self, string_representation, origin):
         self.uid = None
         self.type = None
         self.properties = {}
         self.attributes = []
+        self.origin = origin
         
         string_representation = string_representation.strip()
         matches = re.match(regex_object_matcher, string_representation)
