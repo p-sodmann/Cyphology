@@ -38,6 +38,18 @@
 			]
 		},
 
+		"json_field":{
+			"name": "string.quoted.double.cyphol",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.cyphol",
+					"match": "\".*?\""
+				}
+			]
+		},
+
 		"comment": {
 			"name": "comment.cyphol",
 			"begin": "#",
@@ -46,21 +58,22 @@
 
 		"class": {
 			"patterns": [{
-					"match": "(\\w*) (\\w*) {.*}",
+					"match": "(\\w*) (\\w*) {(\".*\")*}",
 					"captures": {
 						"1": {"name": "entity.name.type.cyphol"},
-						"2": {"name": "markup.bold.cyphol"}
+						"2": {"name": "markup.bold.cyphol"},
+						"3": {"name": "constant.character.escape.cyphol"}
 					}
 				}]
 		},
 		
 		"attribute": {
 			"patterns": [{
-					"match": "\\s*(\\w*) ({.*} )?([<->]) (\\w*)",
+					"match": "\\s*(\\w*) ({(\".*\")*})?([<->]) (\\w*)",
 					"captures": {
 						"1": {"name": "entity.name.type.cyphol"},
 						
-						"4": {"name": "markup.bold.cyphol"}
+						"5": {"name": "markup.bold.cyphol"}
 					}
 				}]
 		}

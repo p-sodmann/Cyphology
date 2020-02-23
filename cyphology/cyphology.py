@@ -157,7 +157,7 @@ class Cyphology:
             match_criteria = {**match_criteria_source, **match_criteria_destination}
 
             # TODO Fix the double declaration "üü+´p" - Nala (my cat)
-            attribute_properties = {**attribute.properties, **attribute_uid}
+            attribute_properties = {**self.global_properties, **attribute.properties, **attribute_uid}
             attribute_property_string = self.create_property_string(attribute_properties)
 
             if attribute.direction == ">":
@@ -168,8 +168,7 @@ class Cyphology:
             
             else:
                 raise Exception(f"Object Error 02: in line: '{attribute_property_string}' seems to be an error, direction not supported")
-            print(query_string)
-            print(match_string_destination)
+
             tx.run(query_string, match_criteria)
 
 
