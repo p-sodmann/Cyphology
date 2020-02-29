@@ -19,7 +19,7 @@ class CyphObject:
             
             # we need at least a type and a uid
             if parts[0] is None or parts[1] is None:
-                raise Exception(f"Object Error 01: in line: '{string_representation}' seems to be an error, at least Class and UID are required")
+                raise Exception(f"Object Error 01: in line: '{string_representation}' seems to be an error, at least Class and UID are required in file {origin}")
             
             self.type = parts[0]
             self.uid = parts[1]
@@ -35,7 +35,7 @@ class CyphObject:
             self.properties["uid"] = self.uid
 
         else:
-            raise Exception(f"Object Error 01a: in line: '{string_representation}' seems to be an error, at least Class and UID are required")
+            raise Exception(f"Object Error 01a: in line: '{string_representation}' seems to be an error, at least Class and UID are required in file {origin}")
 
     def __str__(self):
         as_string = f"Type: {self.type}\nUID:{self.uid}\nProperties:{self.properties}"
