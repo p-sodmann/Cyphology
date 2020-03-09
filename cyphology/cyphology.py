@@ -172,12 +172,17 @@ class Cyphology:
             tx.run(query_string, match_criteria)
 
 
-    def write_to_neo4j(self, username="neo4j", password="meow"):
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=(username, password))
+    def write_to_neo4j(self, username="neo4j", password="meow", session=None):
+        if session is None:
+            driver = GraphDatabase.driver("bolt://localhost:7687", auth=(username, password))
 
-        with driver.session() as session:
+            with driver.session() as session:
+                for cyph_object in tqdm(self.cyph_objects):
+                    self.create_cypher(session, cyph_object)
+            
+        else:
             for cyph_object in tqdm(self.cyph_objects):
-                self.create_cypher(session, cyph_object)
+                    self.create_cypher(session, cyph_object)
                 
 
     @staticmethod
