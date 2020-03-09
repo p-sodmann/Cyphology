@@ -32,4 +32,4 @@ ontology = cyphology.Cyphology("path/to/ontology.cyphol")
 ontology.write_to_neo4j(username="neo4j", password="superSecret😼")
 ```
 
-To use the Visual Studio Code syntax highlighting extension, copy the folder "cyphol" into %UserProfile%\.vscode\extensions
+To use the Visual Studio Code syntax highlighting extension, copy the folder "cyphol" into %UserProfile%\\.vscode\extensions
