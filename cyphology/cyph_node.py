@@ -1,16 +1,19 @@
 import json
 import re
-
+from .cyph_property import create_property_string
 regex_object_matcher = re.compile(r"(\S*) (\S*)( {.*})?")
 
-class CyphObject:
+class CyphNode:
     def __init__(self, string_representation, origin):
         self.uid = None
         self.type = None
         self.properties = {}
         self.attributes = []
         self.origin = origin
-        
+
+        self.parse(string_representation, origin)
+
+    def parse(self, string_representation, origin):
         string_representation = string_representation.strip()
         matches = re.match(regex_object_matcher, string_representation)
         
@@ -39,6 +42,13 @@ class CyphObject:
         else:
             raise Exception(f"Object Error 01a: in line: '{string_representation}' seems to be an error, at least Class and UID are required in file {origin}")
 
+    def to_cypher(self, global_properties):
+        properties = {**global_properties, **self.properties}
+        property_string = create_property_string(properties)
+
+        query_string = f"MERGE (:{self.type} {property_string})"
+        return query_string
+
     def __str__(self):
         as_string = f"Type: {self.type}\nUID:{self.uid}\nProperties:{self.properties}"
 
@@ -47,6 +57,4 @@ class CyphObject:
 
         return as_string
 
-    def add_attribute(self, attribute):
-        self.attributes.append(attribute)
     

@@ -1,6 +1,8 @@
 import os
-from .cyph_object import CyphObject
-from .cyph_attribute import CyphAttribute
+
+from .cyph_node import CyphNode
+from .cyph_edge import CyphEdge
+
 from neo4j import GraphDatabase
 import json
 from tqdm import tqdm
@@ -8,8 +10,10 @@ import warnings
 
 class Cyphology:
     def __init__(self, path):
-        self.cyph_objects = []
-        self.known_objects = set()
+        self.nodes = []
+        self.known_nodes = {}
+        self.edges = []
+
         self.current_file = path
         
         # defaults belong to a type of Node 
@@ -25,7 +29,7 @@ class Cyphology:
         
 
     def __len__(self):
-        return len(self.cyph_objects)
+        return len(self.nodes)
 
     def parse(self, path):
         path = os.path.normpath(path)
@@ -61,55 +65,55 @@ class Cyphology:
                     else:
                         if line.startswith(("\t", " ")):
                             # all indented lines are treated as attribute (child) of the object
-                            self.add_attribute(line)
+                            self.add_edge(line)
                             
                         else:
                             # non indented lines are new objects
-                            self.add_object(line)
-
-
-    def add_attribute(self, line):
-        # lines beginning with a tab are attributes to the previous object
-        # we can only append an attribute if we have an object
-        if not self.cyph_objects:
-            raise Exception(f"Error 02: The syntax of your file seems to be faulty, no Object was found for line {line}, do you have a rouge tabulator?")
+                            self.add_node(line)
         
-        cyph_attribute = CyphAttribute(line)
-
-        # add defaults and overwrite them if a value is set.
-        if cyph_attribute.type in self.defaults:
-            cyph_attribute.properties = {**self.defaults[cyph_attribute.type], **cyph_attribute.properties}
-
-        # Raise exception, if the target object was not definedyo c
-        if cyph_attribute.uid not in self.known_objects:
-            raise Exception(f"Error 05: target object {cyph_attribute.uid} in file: {self.current_file} is not known yet")
-
-        self.cyph_objects[-1].add_attribute(cyph_attribute)
-
-    def add_index(self, line):
-        pass
-
-    def add_object(self, line):
-        cyph_object = CyphObject(line, origin=self.current_file)
+    def add_node(self, line):
+        node = CyphNode(line, origin=self.current_file)
         
         # add defaults and overwrite them if a value is set.
-        if cyph_object.type in self.defaults:
-            cyph_object.properties = {**self.defaults[cyph_object.type], **cyph_object.properties}
+        if node.type in self.defaults:
+            node.properties = {**self.defaults[node.type], **node.properties}
 
         # dont allow multiple instances of an Object
         # unsure if there isnt a usecase for this
-        if cyph_object.uid in self.known_objects:
-            for existing_cyph_object in self.cyph_objects:
-                if existing_cyph_object.uid == cyph_object.uid:
-                    original = existing_cyph_object
-                    break
+        if node.uid in self.known_nodes:
+            original = self.nodes[self.known_nodes[node.uid]]
 
-            warnings.warn(f"Warning 01: Object is already known, please merge occurences of {cyph_object.uid} first occurence: {original.origin} second occurence: {self.current_file}")
+            warnings.warn(f"Warning 01: Object is already known, please merge occurences of {node.uid} first occurence: {original.origin} second occurence: {self.current_file}")
 
         else:
-            self.known_objects.add(cyph_object.uid)
-            self.cyph_objects.append(cyph_object)
+            self.nodes.append(node)
+            self.known_nodes[node.uid] = len(self.nodes) - 1
 
+    def add_edge(self, line):
+        # lines beginning with a tab are attributes to the previous node
+        # we need to have the origin and the target node to be defined
+        if not self.nodes:
+            raise Exception(f"Error 02: The syntax of your file seems to be faulty, no Object was found for line {line}, do you have a rouge tabulator?")
+        
+        edge = CyphEdge(line)
+
+        # add defaults and overwrite them if a value is set.
+        if edge.type in self.defaults:
+            edge.properties = {**self.defaults[edge.type], **edge.properties}
+
+        # Raise exception, if the target object was not defined
+        if edge.target_uid in self.known_nodes:
+            edge.source_node = self.nodes[-1]
+            edge.target_node = self.nodes[self.known_nodes[edge.target_uid]]
+            edge.generate_uid()
+
+        else:
+            raise Exception(f"Error 05: target object {edge.target_uid} in file: {self.current_file} is not known yet")
+        
+        self.edges.append(edge)
+
+    def add_index(self, line):
+        pass
 
     def add_default(self, line):
         line = line.strip()
@@ -124,86 +128,20 @@ class Cyphology:
         else:
             raise Exception(f"Error 04: Mistake in creating default: \n {line}")
 
-
-    def create_cypher(self, tx, cypher_object):
-        # this will produce a node with arbitrary properties
-        
-        properties = {**self.global_properties, **cypher_object.properties}
-        property_string = self.create_property_string(properties)
-            
-        query_string = f"MERGE (:{cypher_object.type} {property_string})"
-
-        tx.run(query_string, cypher_object.properties)
-
-        # add relationships to other nodes
-
-        # generate parent match criteria
-        match_criteria_source = {selector+"_source": properties[selector] for selector in self.match_on}
-        match_string_source = ", ".join([f"{selector}:${selector}_source" for selector in self.match_on])
-        match_string_destination = ", ".join([f"{selector}:${selector}_destination" for selector in self.match_on])
-
-        for attribute in cypher_object.attributes:
-
-
-            uid_source = cypher_object.uid
-            uid_destination = attribute.uid
-            attribute_uid = {"uid": uid_source + attribute.direction + uid_destination}
-
-            # merge global properties and the attribute propperties
-            attribute_properties = {**self.global_properties, **attribute.properties}
-
-            # generate the criteria for the child            
-            match_criteria_destination = {selector+"_destination": attribute_properties[selector] for selector in self.match_on}
-            match_criteria = {**match_criteria_source, **match_criteria_destination}
-
-            # TODO Fix the double declaration "üü+´p" - Nala (my cat)
-            attribute_properties = {**self.global_properties, **attribute.properties, **attribute_uid}
-            attribute_property_string = self.create_property_string(attribute_properties)
-
-            if attribute.direction == ">":
-                query_string = f"MATCH (source {{{match_string_source}}}) OPTIONAL MATCH (destination {{{match_string_destination}}}) MERGE (source)-[:{attribute.type} {attribute_property_string}]->(destination)"
-
-            elif attribute.direction == "<":
-                query_string = f"MATCH (source {{{match_string_source}}}) OPTIONAL MATCH (destination {{{match_string_destination}}}) MERGE (source)<-[:{attribute.type} {attribute_property_string}]-(destination)"
-            
-            else:
-                raise Exception(f"Object Error 02: in line: '{attribute_property_string}' seems to be an error, direction not supported")
-
-            tx.run(query_string, match_criteria)
-
-
     def write_to_neo4j(self, username="neo4j", password="meow", session=None):
         if session is None:
             driver = GraphDatabase.driver("bolt://localhost:7687", auth=(username, password))
 
             with driver.session() as session:
-                for cyph_object in tqdm(self.cyph_objects):
-                    self.create_cypher(session, cyph_object)
+                self.transmit(session)
             
         else:
-            for cyph_object in tqdm(self.cyph_objects):
-                    self.create_cypher(session, cyph_object)
+            self.transmit(session)
                 
 
-    @staticmethod
-    def create_property_string(properties):
-        if properties:
-            property_string = "{"
-            first = True
+    def transmit(self, session):
+        for node in tqdm(self.nodes):
+            session.run(node.to_cypher(self.global_properties))
 
-            for field, value in properties.items():
-                if not first:
-                    property_string += ", "
-                else:
-                    first = False
-
-                if isinstance(value, (int, float, bool)):
-                    property_string += f"{field}: {value}"
-                else: 
-                    property_string += f"{field}: '{value}'"
-
-            property_string += "}"
-        else:
-            property_string = ""
-        
-        return property_string
+        for edge in tqdm(self.edges):
+            edge.to_cypher(self.match_on, self.global_properties, session)
