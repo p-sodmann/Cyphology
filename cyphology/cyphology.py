@@ -140,8 +140,12 @@ class Cyphology:
                 
 
     def transmit(self, session):
-        for node in tqdm(self.nodes):
+        for e, node in enumerate(tqdm(self.nodes)):
             session.run(node.to_cypher(self.global_properties))
+            if e % 1000:
+                session.sync()
 
-        for edge in tqdm(self.edges):
+        for e, edge in enumerate(tqdm(self.edges)):
             edge.to_cypher(self.match_on, self.global_properties, session)
+            if e % 1000:
+                session.sync()
