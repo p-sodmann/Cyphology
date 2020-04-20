@@ -58,7 +58,10 @@ class CyphEdge:
                 f"MERGE (source)-[:{self.type} {property_string}]->(target)"
                 )
 
-        properties = {**{f"source_{m}":self.source_node.properties[m] for m in match_on}, **{f"target_{m}":self.target_node.properties[m] for m in match_on}}
+        properties = {
+            **{f"source_{m}":{**global_properties, **self.source_node.properties}[m] for m in match_on}, 
+            **{f"target_{m}":{**global_properties, **self.target_node.properties}[m] for m in match_on}
+        }
 
         session.run(query_string, **properties)
 
