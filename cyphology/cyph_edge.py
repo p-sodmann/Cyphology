@@ -2,7 +2,7 @@ import re
 import json
 from .cyph_property import create_property_string
 
-regex_attribute_matcher = re.compile(r"(\S*) ({.*?} )?([<->]) (\S*)")
+regex_attribute_matcher = re.compile(r"(\S*) ({.*?} )?([<->]) (.*)")
 
 class CyphEdge:
     def __init__(self, string_representation):
@@ -36,6 +36,7 @@ class CyphEdge:
                     raise Exception(f"Attribute Error 02: failed parsing json in line: {string_representation} Json: {parts[1]}")
                 
             self.direction = parts[2]
+
             self.target_uid = parts[3]
 
         else:

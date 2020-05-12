@@ -7,17 +7,26 @@ from neo4j import GraphDatabase
 import json
 from tqdm import tqdm
 import warnings
+from collections import defaultdict
+import re
+from copy import deepcopy
 
 class Cyphology:
     def __init__(self, path):
         self.nodes = []
         self.known_nodes = {}
+        
+        # used to find nodes and traverse quickly
+        # its structure is: [source][>is_a>][target]
+        self.minigraph = defaultdict(lambda: defaultdict(list))
+
         self.edges = []
 
         self.current_file = path
         
         # defaults belong to a type of Node 
         self.defaults = {}
+        
 
         # globals belong to every Node/Edge
         self.global_properties = {}
@@ -92,25 +101,68 @@ class Cyphology:
     def add_edge(self, line):
         # lines beginning with a tab are attributes to the previous node
         # we need to have the origin and the target node to be defined
+        
         if not self.nodes:
             raise Exception(f"Error 02: The syntax of your file seems to be faulty, no Object was found for line {line}, do you have a rouge tabulator?")
         
+        def build_edge(edge):
+            # add defaults and overwrite them if a value is set.
+            if edge.type in self.defaults:
+                edge.properties = {**self.defaults[edge.type], **edge.properties}
+
+            # Raise exception, if the target object was not defined
+            if edge.target_uid in self.known_nodes:
+                edge.source_node = self.nodes[-1]
+                edge.target_node = self.nodes[self.known_nodes[edge.target_uid]]
+                edge.generate_uid()
+
+            else:
+                raise Exception(f"Error 05: target object {edge.target_uid} in file: {self.current_file} is not known yet")
+            
+            self.edges.append(edge)
+            
+            # [source] [>is_a>] [target]
+
+            target = self.nodes[self.known_nodes[edge.target_uid]]
+
+            self.minigraph[edge.source_node.uid][edge.direction + edge.type + edge.direction].append(f"{target.type}:{target.uid}")
+            # also add inverse connection
+            direction = "<" if edge.direction == ">" else ">"
+            self.minigraph[edge.target_uid][direction + edge.type + direction].append(f"{edge.source_node.type}:{edge.source_node.uid}")
+
+        def recursive_node_search(source, type_filter, type_target):
+            found_connections = []
+            
+            for item in self.minigraph[source][type_filter]:
+                if item.startswith(type_target):
+                    found_connections.append(item.split(":")[1])
+                
+                found_connections += recursive_node_search(item.split(":")[1], type_filter, type_target)
+
+            return found_connections
+
         edge = CyphEdge(line)
 
-        # add defaults and overwrite them if a value is set.
-        if edge.type in self.defaults:
-            edge.properties = {**self.defaults[edge.type], **edge.properties}
+        if edge.target_uid.startswith("["):
+            # here we build a listcomprehension style connector
 
-        # Raise exception, if the target object was not defined
-        if edge.target_uid in self.known_nodes:
-            edge.source_node = self.nodes[-1]
-            edge.target_node = self.nodes[self.known_nodes[edge.target_uid]]
-            edge.generate_uid()
+            matches = re.match('\[(.*)([<>]+.*[<>]+)(.*)\]', edge.target_uid)
+
+            source = matches[1]
+            type_filter = matches[2]
+            type_target = matches[3]
+            
+            found_list = recursive_node_search(source, type_filter, type_target)
+
+            for found_target in found_list:
+                e = deepcopy(edge)
+                e.target_uid = found_target
+                build_edge(e)
 
         else:
-            raise Exception(f"Error 05: target object {edge.target_uid} in file: {self.current_file} is not known yet")
+            build_edge(edge)
+
         
-        self.edges.append(edge)
 
     def add_index(self, line):
         pass
